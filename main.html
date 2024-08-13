@@ -1,0 +1,417 @@
+<html>
+	<head>
+		<META content=text/html;charset=utf-8 http-equiv=content-type></META>
+		<meta http-equiv="X-UA-Compatible" content="IE=8" />
+		<style>
+			th, td {
+			  padding: 5px;
+			  text-align: center;
+			}
+			td.table_year_td_now{
+				border-collapse: collapse;
+				border: 2px solid black;
+				border-color: #009646;
+			}
+
+			td.table_year_td{
+				border-collapse: collapse;
+				border: 2px solid black;
+				border-color: #A0A0A0;
+			}
+
+			td.table_year_td_dis{
+				border-collapse: collapse;
+				border: 2px solid black;
+				border-color: #A0A0A0;
+				background-color: #C0C0C0;
+			}
+
+			td.table_year_om_mouse{
+				border-collapse: collapse;
+				border: 2px solid black;
+				border-color: #A0A0A0;
+				background-color: #FDF0BD;
+			}
+
+			td.table_year_om_mouse_now{
+				border-collapse: collapse;
+				border: 2px solid black;
+				border-color: #009646;
+				background-color: #FDF0BD;
+			}
+
+			td.table_year_om_sel{
+				border-collapse: collapse;
+				border: 2px solid black;
+				border-color: #A0A0A0;
+				background-color: #FACC1F;
+			}
+			td.table_year_om_sel_now{
+				border-collapse: collapse;
+				border: 2px solid black;
+				border-color: #009646;
+				background-color: #FACC1F;
+			}
+			table.table_years {
+				width: 420px;
+			}
+			
+			th.table_years_next{
+				color: #E1E4E7;
+				font-size: 20px;
+			}
+			th.table_years_next_sel{
+				color: #A0A0A0;
+				font-size: 20px;
+			}
+			table.table_year {
+				border-collapse: collapse;
+				
+				/*-webkit-user-select: none;*/
+			    /* user-select -- это нестандартное свойство */
+
+			    /*-moz-user-select: none;*/
+			    /* поэтому нужны префиксы */
+
+			    /*-ms-user-select: none;*/
+			}
+		</style>
+	</head>
+	<body>
+	
+		<div id = "ty_1"></div>
+
+		<script>
+			var now_year = undefined;
+
+			var date_start 	= undefined;
+			var date_end 	= undefined;
+
+			var date_en_start 	= new Date(2018,4,1);
+			var date_en_end 	= new Date(2020,0,1);
+			var single 	= true;
+
+
+			var mouse_is_down = false;
+
+			function get_date_by_btn(btn){
+				var date_string = btn.id;
+				var arr = date_string.split('_');
+				var d = new Date(arr[1], arr[0]-1, 1);
+				return d;
+			}
+
+			function get_now_by_btn(btn){
+				var d = get_date_by_btn(btn);
+				var now = new Date()
+				return d.getFullYear() == now.getFullYear() && d.getMonth() == now.getMonth();
+			}
+
+			function is_now(btn){
+				if(get_now_by_btn(btn)) return "_now";
+				return "";
+			}
+
+			function is_btn_en(btn){
+				var d_btn = get_date_by_btn(btn);
+				if(d_btn > date_en_start && d_btn < date_en_end) return true;
+				
+				return false;
+			}
+			function is_btn_select(btn){
+
+				if(date_start != undefined && date_end != undefined){
+				
+					var d_date_start = get_date_by_btn(date_start);
+					var d_date_end = get_date_by_btn(date_end);
+					
+					var d_date_min = null;
+					var d_date_max = null;
+				
+					if(d_date_start > d_date_end){
+						d_date_min = d_date_end;
+						d_date_max = d_date_start;
+					}else{
+						d_date_min = d_date_start;
+						d_date_max = d_date_end;
+					}
+					
+					
+					var d_btn = get_date_by_btn(btn);
+					if(d_btn >= d_date_min && d_btn <= d_date_max) return true;
+				}
+
+				if(date_start == btn) return true;
+				if(date_end == btn) return true;
+				return false;
+			}
+
+			function btns_refresh_by_year(year){
+				for(var i = 1;i<=12;i++){
+					var btn = document.getElementById(i + "_" + year);
+					if(btn!= null){
+						if(is_btn_select(btn)) 	btn.className = "table_year_om_sel" + is_now(btn);
+						else
+							btn.className = "table_year_td" + is_now(btn);
+							
+						if(!is_btn_en(btn))
+							btn.className = "table_year_td_dis";
+					}
+				}
+			}
+
+			function btns_refresh(){
+
+				btns_refresh_by_year(now_year-1);
+				btns_refresh_by_year(now_year);
+				btns_refresh_by_year(now_year+1);
+			}
+
+			function on_mouse_enter(e) {
+				var btn = this;
+				
+				if(!is_btn_en(btn))return false;
+				
+				if(btn.className != "table_year_om_sel" && btn.className != "table_year_om_sel_new")
+					btn.className = "table_year_om_mouse" + is_now(btn);
+				
+				if(mouse_is_down){
+					
+					date_end = btn;
+					
+					btns_refresh();
+				}
+				return false;
+			}
+			function on_mouse_leave(e) {
+				var btn = this;
+				if(!is_btn_en(btn))return false;
+				
+				if(is_btn_select(btn)) return;
+				btns_refresh();
+				return false;
+			}
+
+			function on_mouse_up(e) {
+				var btn = this;
+				mouse_is_down = false;
+				
+				if(single){
+					date_end = date_start;
+					btns_refresh();
+					return;
+				}
+				
+				if(!is_btn_en(btn))return false;
+				
+				if(date_start == btn){
+					btns_refresh();
+					return;
+				}
+				
+				if(date_start != undefined && date_end == undefined){
+					date_end = btn;
+				}
+				
+				btns_refresh();
+			}
+			function on_mouse_down(e) {
+				var btn = this;
+				
+				if(!is_btn_en(btn))return false;
+				
+				mouse_is_down = true;
+				
+				var d = get_date_by_btn(btn);
+				
+				if(date_start != undefined && date_end != undefined){
+					date_start 	= undefined;
+					date_end 	= undefined;
+				}
+					
+				if(date_start == undefined){
+					date_start = btn;
+					date_start.className = "table_year_om_sel" + is_now(btn);
+				}
+				else{
+					date_end = btn;
+					date_end.className = "table_year_om_sel" + is_now(btn);
+				}
+			}
+
+			
+			function on_mouse_enter_years(e) {
+				var btn = this;
+				btn.className = "table_years_next_sel";
+			}
+			function on_mouse_leave_years(e) {
+				var btn = this;
+				btn.className = "table_years_next";
+			}
+
+			function on_mouse_up_years(btn, val) {
+				var table_years_1 = document.getElementById("table_years_1");
+				var table_years_2 = document.getElementById("table_years_2");
+				
+				table_years_1.parentNode.removeChild(table_years_1);
+				table_years_2.parentNode.removeChild(table_years_2);
+				
+				create_table(new Date(now_year + val, 0, 1));
+				btns_refresh();
+			}
+			function on_mouse_up_years_right(date) {
+				on_mouse_up_years(this, 1);
+			}
+			function on_mouse_up_years_left(date) {
+				on_mouse_up_years(this, -1);
+			}
+			function on_select_start(e){
+				return false;
+			}
+
+			function create_month(parent, year, month, mounth_text){
+				var td = document.createElement("TD");
+				td.innerText = mounth_text;
+				td.id = "" + month + "_" + year;
+				
+				if(!is_btn_en(td))
+					td.className = "table_year_td_dis";
+				else
+					td.className = "table_year_td" + is_now(td);
+				
+				td.onmousedown = on_mouse_down;
+				td.onmouseup = on_mouse_up;
+				td.onmouseenter = on_mouse_enter;
+				td.onmouseleave = on_mouse_leave;
+				td.onselectstart= on_select_start;
+				td.style.cursor = "default";
+				parent.appendChild(td);
+			}
+
+			function create_table_year(parent_element, year){
+				if(parent_element == null){
+					console.log("In 'create_table_year' parent_element is null");
+					return;
+				}
+				
+				var tbl = document.createElement("TABLE");
+			    //++Шапочка таблицы
+				var tr = document.createElement("TR");
+				create_month(tr, year, 1, "Янв");
+				create_month(tr, year, 2, "Фев");
+				create_month(tr, year, 3, "Мар");
+				tbl.appendChild(tr);	
+				
+				var tr = document.createElement("TR");
+				create_month(tr, year, 4, "Апр");
+				create_month(tr, year, 5, "Май");
+				create_month(tr, year, 6, "Июн");
+				tbl.appendChild(tr);	
+				
+				var tr = document.createElement("TR");
+				create_month(tr, year, 7, "Июл");
+				create_month(tr, year, 8, "Авг");
+				create_month(tr, year, 9, "Сен");
+				tbl.appendChild(tr);	
+				
+				var tr = document.createElement("TR");
+				create_month(tr, year, 10, "Окт");
+				create_month(tr, year, 11, "Ноя");
+				create_month(tr, year, 12, "Дек");
+				tbl.appendChild(tr);	
+
+				parent_element.appendChild(tbl);	
+			}
+
+
+			function create_table(now){
+				var parent_element = document.getElementById("ty_1");
+				//now = null;
+				if(now == null){
+					now = new Date();
+				}
+				now_year = now.getFullYear();
+				
+				
+				//++Шапочка таблицы
+				var tbl = document.createElement("TABLE");
+				tbl.className = "table_years";
+				tbl.id = "table_years_1";
+				
+				var tr = document.createElement("TR");
+				var th;
+				
+				th = document.createElement("TH");
+				var node = document.createTextNode(String.fromCharCode(171));
+				th.className = "table_years_next";
+				th.style.cursor = "hand";
+				th.onmouseup = on_mouse_up_years_left;
+				th.onmouseenter = on_mouse_enter_years;
+				th.onmouseleave = on_mouse_leave_years;
+				
+				th.appendChild(node);
+				tr.appendChild(th);
+				
+				
+				for(var i = (now_year-1);i<=(now_year+1); i++){
+					tr.appendChild(document.createElement("TH"));
+					tr.appendChild(document.createElement("TH"));
+					
+					th = document.createElement("TH");
+					
+					th.innerText = i;
+					tr.appendChild(th);
+					
+					tr.appendChild(document.createElement("TH"));
+					tr.appendChild(document.createElement("TH"));
+				
+				}
+				
+				th = document.createElement("TH");
+				var node = document.createTextNode(String.fromCharCode(187));
+				th.className = "table_years_next";
+				th.style.cursor = "hand";
+				th.onmouseup = on_mouse_up_years_right;
+				th.onmouseenter = on_mouse_enter_years;
+				th.onmouseleave = on_mouse_leave_years;
+				
+				th.appendChild(node);
+				tr.appendChild(th);
+				tbl.appendChild(tr);
+				parent_element.appendChild(tbl);
+				//--Шапочка таблицы
+				
+				//++Календарики таблицы
+				var tbl = document.createElement("TABLE");
+				tbl.id = "table_years_2";
+				
+				var div;
+				
+				var tr = document.createElement("TR");
+				
+				for(var i = 1;i<=3; i++){
+					th = document.createElement("TD");
+					div = document.createElement("DIV");
+					div.id = "t" + i;
+					th.appendChild(div);
+					tr.appendChild(th);
+				}
+				tbl.appendChild(tr);
+				//--Календарики таблицы
+				
+				tbl.className = "table_year";
+				
+			    //tbl.innerHTML=s;
+				parent_element.appendChild(tbl);
+
+				create_table_year(document.getElementById("t1"), now_year-1);
+				create_table_year(document.getElementById("t2"), now_year);
+				create_table_year(document.getElementById("t3"), now_year+1);	
+			}
+		
+			window.onload = function() {
+			   //create_table(null);
+			};
+		</script>
+	</body>
+</html>
